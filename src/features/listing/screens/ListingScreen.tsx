@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   FlatList,
+  ListRenderItem,
   RefreshControl,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { AppHeader, ScreenWrapper } from '../../../components';
-import { ListingCard } from '../components';
+import { CategoryChip, ListingCard } from '../components';
 import { useAppDispatch, useAppSelector } from '../../../app/redux';
 import { refreshListings, setSelectedCategory, setRefreshing } from '../redux';
 import { useTheme } from '../../../utils';
+import { ListingItem } from '../types';
 
 const categories = [
   'All',
@@ -35,13 +35,39 @@ export const ListingScreen: React.FC = () => {
       ? items
       : items.filter((item) => item.category === selectedCategory);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(setRefreshing(true));
     setTimeout(() => {
       dispatch(refreshListings());
       dispatch(setRefreshing(false));
     }, 500);
-  };
+  }, [dispatch]);
+
+  const handleSelectCategory = useCallback(
+    (category: string) => {
+      dispatch(setSelectedCategory(category));
+    },
+    [dispatch]
+  );
+
+  const renderCategoryItem: ListRenderItem<string> = useCallback(
+    ({ item }) => (
+      <CategoryChip
+        label={item}
+        isActive={selectedCategory === item}
+        onPress={() => handleSelectCategory(item)}
+      />
+    ),
+    [selectedCategory, handleSelectCategory]
+  );
+
+  const renderListingItem: ListRenderItem<ListingItem> = useCallback(
+    ({ item }) => <ListingCard item={item} />,
+    []
+  );
+
+  const keyExtractorCategory = useCallback((item: string) => item, []);
+  const keyExtractorListing = useCallback((item: ListingItem) => item.id, []);
 
   return (
     <ScreenWrapper>
@@ -60,41 +86,15 @@ export const ListingScreen: React.FC = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           data={categories}
-          keyExtractor={(item) => item}
+          keyExtractor={keyExtractorCategory}
           contentContainerStyle={styles.filterList}
-          renderItem={({ item }) => {
-            const isActive = selectedCategory === item;
-            return (
-              <TouchableOpacity
-                onPress={() => dispatch(setSelectedCategory(item))}
-                style={[
-                  styles.filterChip,
-                  {
-                    backgroundColor: isActive ? colors.primary : colors.background,
-                    borderColor: isActive ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    isActive ? styles.chipTextActive : styles.chipTextInactive,
-                    {
-                      color: isActive ? colors.white : colors.textSecondary,
-                    },
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
+          renderItem={renderCategoryItem}
         />
       </View>
 
       <FlatList
         data={filteredItems}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractorListing}
         contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl
@@ -103,7 +103,7 @@ export const ListingScreen: React.FC = () => {
             tintColor={colors.primary}
           />
         }
-        renderItem={({ item }) => <ListingCard item={item} />}
+        renderItem={renderListingItem}
       />
     </ScreenWrapper>
   );
@@ -117,21 +117,6 @@ const styles = StyleSheet.create({
   filterList: {
     paddingHorizontal: 16,
     gap: 8,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  filterChipText: {
-    fontSize: 13,
-  },
-  chipTextActive: {
-    fontWeight: '600',
-  },
-  chipTextInactive: {
-    fontWeight: '500',
   },
   list: {
     padding: 16,

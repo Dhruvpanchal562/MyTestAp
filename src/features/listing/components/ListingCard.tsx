@@ -7,35 +7,32 @@ interface ListingCardProps {
   item: ListingItem;
 }
 
+const STATUS_CONFIG: Record<
+  ListingItem['status'],
+  { color: string; bgLight: string; bgDark: string }
+> = {
+  'In Stock': {
+    color: '#10B981',
+    bgLight: 'rgba(16, 185, 129, 0.12)',
+    bgDark: 'rgba(16, 185, 129, 0.22)',
+  },
+  Limited: {
+    color: '#F59E0B',
+    bgLight: 'rgba(245, 158, 11, 0.12)',
+    bgDark: 'rgba(245, 158, 11, 0.22)',
+  },
+  'Sold Out': {
+    color: '#EF4444',
+    bgLight: 'rgba(239, 68, 68, 0.12)',
+    bgDark: 'rgba(239, 68, 68, 0.22)',
+  },
+};
+
 export const ListingCard: React.FC<ListingCardProps> = ({ item }) => {
   const { colors, isDarkMode } = useTheme();
 
-  const isAvailable = item.status === 'In Stock';
-  const isLimited = item.status === 'Limited';
-
-  const badgeBgStyle = isAvailable
-    ? isDarkMode
-      ? styles.badgeActiveDark
-      : styles.badgeActiveLight
-    : isLimited
-    ? isDarkMode
-      ? styles.badgeLimitedDark
-      : styles.badgeLimitedLight
-    : isDarkMode
-    ? styles.badgeSoldDark
-    : styles.badgeSoldLight;
-
-  const badgeTextStyle = isAvailable
-    ? isDarkMode
-      ? styles.badgeTextActiveDark
-      : styles.badgeTextActiveLight
-    : isLimited
-    ? isDarkMode
-      ? styles.badgeTextLimitedDark
-      : styles.badgeTextLimitedLight
-    : isDarkMode
-    ? styles.badgeTextSoldDark
-    : styles.badgeTextSoldLight;
+  const statusConfig = STATUS_CONFIG[item.status] ?? STATUS_CONFIG['In Stock'];
+  const statusBadgeBg = isDarkMode ? statusConfig.bgDark : statusConfig.bgLight;
 
   return (
     <View
@@ -51,16 +48,29 @@ export const ListingCard: React.FC<ListingCardProps> = ({ item }) => {
         <View
           style={[
             styles.categoryPill,
-            isDarkMode ? styles.categoryPillDark : styles.categoryPillLight,
+            { backgroundColor: colors.primaryLight },
           ]}
         >
-          <Text style={[styles.category, { color: colors.primary }]}>
+          <Text style={[styles.categoryText, { color: colors.primary }]}>
             {item.category}
           </Text>
         </View>
 
-        <View style={[styles.badge, badgeBgStyle]}>
-          <Text style={[styles.badgeText, badgeTextStyle]}>{item.status}</Text>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: statusBadgeBg },
+          ]}
+        >
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: statusConfig.color },
+            ]}
+          />
+          <Text style={[styles.statusText, { color: statusConfig.color }]}>
+            {item.status}
+          </Text>
         </View>
       </View>
 
@@ -78,17 +88,16 @@ export const ListingCard: React.FC<ListingCardProps> = ({ item }) => {
         {item.description}
       </Text>
 
-      <View
-        style={[styles.footer, { borderTopColor: colors.border }]}
-      >
-        <View>
-          <Text style={[styles.sellerLabel, { color: colors.textSecondary }]}>
+      <View style={[styles.footer, { borderTopColor: colors.border }]}>
+        <View style={styles.metaContainer}>
+          <Text style={[styles.seller, { color: colors.textSecondary }]}>
             Seller: {item.seller}
           </Text>
           <Text style={[styles.rating, { color: colors.textSecondary }]}>
-            ⭐ {item.rating} / 5.0
+            ⭐ {item.rating.toFixed(1)} / 5.0
           </Text>
         </View>
+
         <Text style={[styles.price, { color: colors.primary }]}>
           {item.price}
         </Text>
@@ -100,9 +109,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({ item }) => {
 const styles = StyleSheet.create({
   card: {
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
@@ -111,94 +125,67 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   categoryPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  categoryPillLight: {
-    backgroundColor: '#DBEAFE',
-  },
-  categoryPillDark: {
-    backgroundColor: '#1E3A8A',
-  },
-  category: {
+  categoryText: {
     fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
-  badge: {
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 5,
   },
-  badgeActiveLight: {
-    backgroundColor: '#DCFCE7',
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  badgeActiveDark: {
-    backgroundColor: '#064E3B',
-  },
-  badgeLimitedLight: {
-    backgroundColor: '#FEF3C7',
-  },
-  badgeLimitedDark: {
-    backgroundColor: '#78350F',
-  },
-  badgeSoldLight: {
-    backgroundColor: '#FEE2E2',
-  },
-  badgeSoldDark: {
-    backgroundColor: '#7F1D1D',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  badgeTextActiveLight: {
-    color: '#16A34A',
-  },
-  badgeTextActiveDark: {
-    color: '#34D399',
-  },
-  badgeTextLimitedLight: {
-    color: '#D97706',
-  },
-  badgeTextLimitedDark: {
-    color: '#FBBF24',
-  },
-  badgeTextSoldLight: {
-    color: '#DC2626',
-  },
-  badgeTextSoldDark: {
-    color: '#F87171',
+  statusText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
+    lineHeight: 22,
     marginBottom: 6,
   },
   description: {
     fontSize: 13,
     lineHeight: 18,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 10,
+    alignItems: 'flex-end',
+    paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  sellerLabel: {
-    fontSize: 11,
+  metaContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  seller: {
+    fontSize: 12,
     fontWeight: '500',
+    marginBottom: 2,
   },
   rating: {
     fontSize: 12,
     fontWeight: '600',
-    marginTop: 2,
   },
   price: {
     fontSize: 18,
     fontWeight: '800',
+    letterSpacing: -0.3,
   },
 });

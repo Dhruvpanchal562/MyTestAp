@@ -1,9 +1,3 @@
-export interface CountryOption {
-  code: string;
-  name: string;
-  flag: string;
-}
-
 export interface SettingsFormData {
   name: string;
   email: string;

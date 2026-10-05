@@ -12,7 +12,6 @@ export const ListingIcon: React.FC<ListingIconProps> = ({
 }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-      {/* Back Layered Card */}
       <Path
         d="M 28 32 H 24 C 17 32 12 37 12 44 V 74 C 12 81 17 86 24 86 H 60 C 67 86 72 81 72 74 V 72"
         stroke={color}
@@ -20,8 +19,6 @@ export const ListingIcon: React.FC<ListingIconProps> = ({
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-
-      {/* Front Main Card */}
       <Rect
         x="28"
         y="12"
